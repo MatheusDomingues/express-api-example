@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "bookings" ALTER COLUMN "room" SET DATA TYPE TEXT;
+
+-- AlterTable
+ALTER TABLE "users" ALTER COLUMN "email" SET DATA TYPE TEXT,
+ALTER COLUMN "name" SET DATA TYPE TEXT;

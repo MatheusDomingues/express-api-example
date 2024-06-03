@@ -1,0 +1,22 @@
+{
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "build"],
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "CommonJS",
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "outDir": "dist",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "noImplicitAny": true,
+    "strict": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  }
+}

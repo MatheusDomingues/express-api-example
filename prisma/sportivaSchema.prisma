@@ -1,0 +1,183 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+}
+
+model User {
+  id String @id @default(uuid())
+
+  email      String         @unique @db.Char(50)
+  name       String         @db.Char(50)
+  password   String?        @db.VarChar()
+  googleId   String?        @map("google_id") @db.Char(20)
+  facebookId String?        @map("facebook_id") @db.Char(20)
+  cellphone  String?        @db.Char(15)
+  businesses UserBusiness[]
+  bookings   BookingUser[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model UserBusiness {
+  id String @id @default(uuid())
+
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessId String   @map("business_id")
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users_businesses")
+}
+
+model Business {
+  id String @id @default(uuid())
+
+  companyName String             @map("company_name") @db.Char(50)
+  tradingName String             @map("trading_name") @db.Char(50)
+  document    String             @db.Char(20)
+  isActive    Boolean            @default(false) @map("active")
+  users       UserBusiness[]
+  info        BusinessInfo?
+  calendars   BusinessCalendar[]
+  fields      BusinessField[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("businesses")
+}
+
+model BusinessInfo {
+  id String @id @default(uuid())
+
+  businessId     String   @unique @map("business_id")
+  business       Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  paymentMethods Int[]    @default([]) @map("payment_methods") @db.SmallInt()
+  logoUrl        String?  @map("logo_url")
+  description    String?
+  refundPolicy   String?  @map("refund_policy")
+  equipments     String?
+  zipCode        String   @map("zip_code") @db.Char(20)
+  country        String   @db.Char(60)
+  state          String   @db.Char(60)
+  city           String   @db.Char(60)
+  firstLine      String   @map("first_line")
+  secondLine     String   @map("second_line")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("businesses_infos")
+}
+
+model BusinessCalendar {
+  id String @id @default(uuid())
+
+  businessId String   @map("business_id")
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  days       Int[]    @db.SmallInt()
+  openedAt   DateTime @map("opened_at") @db.Time()
+  closedAt   DateTime @map("closed_at") @db.Time()
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("businesses_calendars")
+}
+
+model BusinessField {
+  id String @id @default(uuid())
+
+  businessId  String         @map("business_id")
+  business    Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name        String         @db.Char(50)
+  description String?
+  categories  Int[]          @db.SmallInt()
+  isCovered   Boolean        @default(false) @map("covered")
+  pricing     FieldPricing[]
+  images      FieldImage[]
+  bookings    Booking[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("businesses_fields")
+}
+
+model FieldPricing {
+  id String @id @default(uuid())
+
+  fieldId  String        @map("field_id")
+  field    BusinessField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  days     Int[]         @db.SmallInt()
+  price    Float         @db.Real()
+  currency Int           @db.SmallInt()
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("fields_pricing")
+}
+
+model FieldImage {
+  id String @id @default(uuid())
+
+  fieldId String        @map("field_id")
+  field   BusinessField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  name    String        @db.Char(80)
+  url     String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("fields_images")
+}
+
+model Booking {
+  id String @id @default(uuid())
+
+  fieldId        String        @map("field_id")
+  field          BusinessField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  booker         String?       @db.Char(50)
+  date           DateTime
+  price          Float         @db.Real()
+  paymentMethods Int           @map("payment_methods") @db.SmallInt()
+  isPaid         Boolean       @default(false) @map("paid")
+  canceledAt     DateTime?     @map("canceled_at")
+  users          BookingUser[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("bookings")
+}
+
+model BookingUser {
+  id String @id @default(uuid())
+
+  bookingId      String  @map("booking_id")
+  booking        Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  userId         String  @map("user_id")
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isBooker       Boolean @default(false) @map("booker")
+  paidAmount     Float?  @map("paid_amount") @db.Real()
+  paymentMethods Int?    @map("payment_methods") @db.SmallInt()
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("bookings_users")
+}
